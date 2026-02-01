@@ -1,0 +1,33 @@
+.sudoku-grid-container {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.sudoku-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  gap: 0;
+  width: min(90vw, 450px);
+  max-width: 450px;
+  border: 3px solid #333;
+  background: #333;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.sudoku-grid-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(90vw, 450px);
+  height: min(90vw, 450px);
+  max-width: 450px;
+  max-height: 450px;
+  margin: 0 auto;
+  padding: 2rem;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  text-align: center;
+  color: #666;
+}

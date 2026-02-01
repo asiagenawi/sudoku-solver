@@ -1,0 +1,28 @@
+.sudoku-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: 1px solid #ccc;
+  font-size: clamp(1rem, 4vw, 1.5rem);
+  font-weight: 500;
+  background: white;
+  transition: background-color 0.2s;
+}
+
+.sudoku-cell.original {
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.sudoku-cell.solved {
+  color: #2563eb;
+}
+
+.sudoku-cell.box-border-right {
+  border-right: 2px solid #333;
+}
+
+.sudoku-cell.box-border-bottom {
+  border-bottom: 2px solid #333;
+}
