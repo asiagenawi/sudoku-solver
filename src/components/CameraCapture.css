@@ -32,6 +32,27 @@
   object-fit: cover;
 }
 
+.camera-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.btn-capture:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-capture:disabled .capture-ring {
+  background: #999;
+}
+
 .camera-overlay {
   position: absolute;
   top: 0;

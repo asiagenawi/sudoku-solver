@@ -50,19 +50,6 @@ export function CameraCapture({ onCapture, onCancel }) {
     );
   }
 
-  if (!isActive) {
-    return (
-      <div className="camera-capture">
-        <div className="camera-start">
-          <p>Starting camera...</p>
-          <button onClick={onCancel} className="btn btn-secondary">
-            Cancel
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="camera-capture">
       <div className="camera-preview">
@@ -71,10 +58,18 @@ export function CameraCapture({ onCapture, onCancel }) {
           playsInline
           muted
           autoPlay
+          style={{ display: isActive ? 'block' : 'none' }}
         />
-        <div className="camera-overlay">
-          <div className="alignment-guide"></div>
-        </div>
+        {!isActive && (
+          <div className="camera-loading">
+            <p>Starting camera...</p>
+          </div>
+        )}
+        {isActive && (
+          <div className="camera-overlay">
+            <div className="alignment-guide"></div>
+          </div>
+        )}
       </div>
 
       <div className="camera-controls">
@@ -86,7 +81,12 @@ export function CameraCapture({ onCapture, onCancel }) {
           </button>
         )}
 
-        <button onClick={handleCapture} className="btn btn-capture" title="Capture">
+        <button
+          onClick={handleCapture}
+          className="btn btn-capture"
+          title="Capture"
+          disabled={!isActive}
+        >
           <span className="capture-ring"></span>
         </button>
 
