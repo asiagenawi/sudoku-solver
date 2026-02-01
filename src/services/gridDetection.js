@@ -5,25 +5,19 @@
 
 /**
  * Divide a preprocessed sudoku image into 81 cell canvases
- * @param {HTMLCanvasElement} canvas - Preprocessed sudoku image
- * @param {Object} options - Options for cell extraction
- * @returns {HTMLCanvasElement[]} - Array of 81 cell canvases (row-major order)
  */
 export function extractCells(canvas, options = {}) {
   const {
-    padding = 0.15, // Percentage of cell size to pad (avoid grid lines)
-    cellSize = 60   // Output cell size in pixels
+    padding = 0.18, // 18% padding to avoid grid lines
+    cellSize = 64
   } = options;
 
-  const ctx = canvas.getContext('2d');
   const width = canvas.width;
   const height = canvas.height;
 
-  // Calculate cell dimensions in source image
   const cellWidth = width / 9;
   const cellHeight = height / 9;
 
-  // Padding in pixels
   const padX = cellWidth * padding;
   const padY = cellHeight * padding;
 
@@ -31,28 +25,22 @@ export function extractCells(canvas, options = {}) {
 
   for (let row = 0; row < 9; row++) {
     for (let col = 0; col < 9; col++) {
-      // Calculate source region with padding
       const srcX = col * cellWidth + padX;
       const srcY = row * cellHeight + padY;
       const srcW = cellWidth - 2 * padX;
       const srcH = cellHeight - 2 * padY;
 
-      // Create cell canvas
       const cellCanvas = document.createElement('canvas');
       cellCanvas.width = cellSize;
       cellCanvas.height = cellSize;
       const cellCtx = cellCanvas.getContext('2d');
 
-      // Fill with white background
+      // White background
       cellCtx.fillStyle = 'white';
       cellCtx.fillRect(0, 0, cellSize, cellSize);
 
-      // Draw the cell content
-      cellCtx.drawImage(
-        canvas,
-        srcX, srcY, srcW, srcH,
-        0, 0, cellSize, cellSize
-      );
+      // Draw cell content
+      cellCtx.drawImage(canvas, srcX, srcY, srcW, srcH, 0, 0, cellSize, cellSize);
 
       cells.push(cellCanvas);
     }
@@ -62,35 +50,30 @@ export function extractCells(canvas, options = {}) {
 }
 
 /**
- * Check if a cell canvas contains a digit (has significant dark pixels)
- * @param {HTMLCanvasElement} cellCanvas - Cell canvas to check
- * @param {number} threshold - Minimum percentage of dark pixels (0-1)
- * @returns {boolean} - True if cell likely contains a digit
+ * Check if cell has content
  */
-export function cellHasContent(cellCanvas, threshold = 0.03) {
+export function cellHasContent(cellCanvas, threshold = 0.02) {
   const ctx = cellCanvas.getContext('2d');
-  const imageData = ctx.getImageData(0, 0, cellCanvas.width, cellCanvas.height);
+  const w = cellCanvas.width;
+  const h = cellCanvas.height;
+
+  // Only check center region
+  const margin = Math.floor(w * 0.15);
+  const imageData = ctx.getImageData(margin, margin, w - margin * 2, h - margin * 2);
   const data = imageData.data;
 
   let darkPixels = 0;
-  const totalPixels = cellCanvas.width * cellCanvas.height;
+  const totalPixels = (w - margin * 2) * (h - margin * 2);
 
-  // Count pixels that are significantly dark
   for (let i = 0; i < data.length; i += 4) {
-    // Check if pixel is dark (below 128 brightness)
-    if (data[i] < 128) {
-      darkPixels++;
-    }
+    if (data[i] < 128) darkPixels++;
   }
 
-  const ratio = darkPixels / totalPixels;
-  return ratio > threshold;
+  return (darkPixels / totalPixels) > threshold;
 }
 
 /**
- * Center the digit in a cell canvas by finding the bounding box
- * @param {HTMLCanvasElement} cellCanvas - Cell canvas with digit
- * @returns {HTMLCanvasElement} - New canvas with centered digit
+ * Center the digit by finding bounding box
  */
 export function centerDigit(cellCanvas) {
   const ctx = cellCanvas.getContext('2d');
@@ -99,15 +82,14 @@ export function centerDigit(cellCanvas) {
   const imageData = ctx.getImageData(0, 0, width, height);
   const data = imageData.data;
 
-  // Find bounding box of dark pixels
   let minX = width, maxX = 0, minY = height, maxY = 0;
-  let hasDarkPixels = false;
+  let hasDark = false;
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const idx = (y * width + x) * 4;
       if (data[idx] < 128) {
-        hasDarkPixels = true;
+        hasDark = true;
         minX = Math.min(minX, x);
         maxX = Math.max(maxX, x);
         minY = Math.min(minY, y);
@@ -116,41 +98,37 @@ export function centerDigit(cellCanvas) {
     }
   }
 
-  if (!hasDarkPixels) {
-    return cellCanvas;
-  }
+  if (!hasDark) return cellCanvas;
 
-  // Extract and center the digit
-  const digitWidth = maxX - minX + 1;
-  const digitHeight = maxY - minY + 1;
+  const digitW = maxX - minX + 1;
+  const digitH = maxY - minY + 1;
+
+  // Add some margin around the digit
+  const margin = 4;
+  const newSize = Math.max(digitW, digitH) + margin * 2;
 
   const newCanvas = document.createElement('canvas');
   newCanvas.width = width;
   newCanvas.height = height;
   const newCtx = newCanvas.getContext('2d');
 
-  // Fill with white
   newCtx.fillStyle = 'white';
   newCtx.fillRect(0, 0, width, height);
 
-  // Calculate position to center the digit
-  const destX = Math.floor((width - digitWidth) / 2);
-  const destY = Math.floor((height - digitHeight) / 2);
+  // Center the digit
+  const scale = Math.min((width - margin * 2) / digitW, (height - margin * 2) / digitH, 1.5);
+  const destW = digitW * scale;
+  const destH = digitH * scale;
+  const destX = (width - destW) / 2;
+  const destY = (height - destH) / 2;
 
-  // Draw the digit centered
-  newCtx.drawImage(
-    cellCanvas,
-    minX, minY, digitWidth, digitHeight,
-    destX, destY, digitWidth, digitHeight
-  );
+  newCtx.drawImage(cellCanvas, minX, minY, digitW, digitH, destX, destY, destW, destH);
 
   return newCanvas;
 }
 
 /**
- * Process all cells - center digits and check for content
- * @param {HTMLCanvasElement[]} cells - Array of cell canvases
- * @returns {{ canvas: HTMLCanvasElement, hasContent: boolean }[]}
+ * Process all cells
  */
 export function processCells(cells) {
   return cells.map(cell => {
@@ -158,60 +136,4 @@ export function processCells(cells) {
     const canvas = hasContent ? centerDigit(cell) : cell;
     return { canvas, hasContent };
   });
-}
-
-/**
- * Create a debug visualization of the extracted cells
- * @param {HTMLCanvasElement[]} cells - Array of 81 cell canvases
- * @param {number} cellSize - Size of each cell in output
- * @returns {HTMLCanvasElement} - Debug grid visualization
- */
-export function createDebugGrid(cells, cellSize = 50) {
-  const canvas = document.createElement('canvas');
-  canvas.width = cellSize * 9;
-  canvas.height = cellSize * 9;
-  const ctx = canvas.getContext('2d');
-
-  // Fill background
-  ctx.fillStyle = '#f0f0f0';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Draw cells
-  cells.forEach((cell, index) => {
-    const row = Math.floor(index / 9);
-    const col = index % 9;
-    ctx.drawImage(cell, col * cellSize, row * cellSize, cellSize, cellSize);
-  });
-
-  // Draw grid lines
-  ctx.strokeStyle = '#ccc';
-  ctx.lineWidth = 1;
-  for (let i = 1; i < 9; i++) {
-    ctx.beginPath();
-    ctx.moveTo(i * cellSize, 0);
-    ctx.lineTo(i * cellSize, canvas.height);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(0, i * cellSize);
-    ctx.lineTo(canvas.width, i * cellSize);
-    ctx.stroke();
-  }
-
-  // Draw thick lines for 3x3 boxes
-  ctx.strokeStyle = '#333';
-  ctx.lineWidth = 2;
-  for (let i = 0; i <= 3; i++) {
-    ctx.beginPath();
-    ctx.moveTo(i * cellSize * 3, 0);
-    ctx.lineTo(i * cellSize * 3, canvas.height);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(0, i * cellSize * 3);
-    ctx.lineTo(canvas.width, i * cellSize * 3);
-    ctx.stroke();
-  }
-
-  return canvas;
 }

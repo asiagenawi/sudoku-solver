@@ -3,12 +3,10 @@
  * Prepares sudoku images for better digit recognition
  */
 
-const MAX_DIMENSION = 1000;
+const MAX_DIMENSION = 900;
 
 /**
  * Load an image from a source (File, Blob, or URL)
- * @param {File|Blob|string} source - Image source
- * @returns {Promise<HTMLImageElement>}
  */
 export function loadImage(source) {
   return new Promise((resolve, reject) => {
@@ -27,34 +25,32 @@ export function loadImage(source) {
 }
 
 /**
- * Create a canvas from an image, resizing if necessary
- * @param {HTMLImageElement} img - Source image
- * @returns {{ canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D }}
+ * Create a canvas from an image, resizing to square
  */
 export function imageToCanvas(img) {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
 
-  let { width, height } = img;
+  // Make it square and reasonable size
+  const size = Math.min(MAX_DIMENSION, Math.max(img.width, img.height));
+  canvas.width = size;
+  canvas.height = size;
 
-  // Resize if too large
-  if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
-    const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
-    width = Math.floor(width * ratio);
-    height = Math.floor(height * ratio);
-  }
+  // Fill white background
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, size, size);
 
-  canvas.width = width;
-  canvas.height = height;
-  ctx.drawImage(img, 0, 0, width, height);
+  // Draw image centered and scaled to fit
+  const scale = Math.min(size / img.width, size / img.height);
+  const x = (size - img.width * scale) / 2;
+  const y = (size - img.height * scale) / 2;
+  ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
 
   return { canvas, ctx };
 }
 
 /**
- * Convert image to grayscale
- * @param {HTMLCanvasElement} canvas - Source canvas
- * @returns {HTMLCanvasElement} - Grayscale canvas
+ * Convert to grayscale
  */
 export function toGrayscale(canvas) {
   const ctx = canvas.getContext('2d');
@@ -62,12 +58,10 @@ export function toGrayscale(canvas) {
   const data = imageData.data;
 
   for (let i = 0; i < data.length; i += 4) {
-    // Luminosity method for grayscale
     const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-    data[i] = gray;     // R
-    data[i + 1] = gray; // G
-    data[i + 2] = gray; // B
-    // Alpha stays the same
+    data[i] = gray;
+    data[i + 1] = gray;
+    data[i + 2] = gray;
   }
 
   ctx.putImageData(imageData, 0, 0);
@@ -75,12 +69,9 @@ export function toGrayscale(canvas) {
 }
 
 /**
- * Increase image contrast
- * @param {HTMLCanvasElement} canvas - Source canvas
- * @param {number} factor - Contrast factor (1 = no change, >1 = more contrast)
- * @returns {HTMLCanvasElement}
+ * Increase contrast significantly
  */
-export function increaseContrast(canvas, factor = 1.5) {
+export function increaseContrast(canvas, factor = 2.0) {
   const ctx = canvas.getContext('2d');
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
@@ -98,16 +89,53 @@ export function increaseContrast(canvas, factor = 1.5) {
 }
 
 /**
- * Apply threshold to convert image to black and white
- * @param {HTMLCanvasElement} canvas - Source canvas (should be grayscale)
- * @param {number} threshold - Threshold value (0-255), pixels below become black
- * @returns {HTMLCanvasElement}
+ * Apply Otsu's threshold for automatic optimal threshold selection
  */
-export function applyThreshold(canvas, threshold = 128) {
+export function otsuThreshold(canvas) {
   const ctx = canvas.getContext('2d');
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
 
+  // Build histogram
+  const histogram = new Array(256).fill(0);
+  for (let i = 0; i < data.length; i += 4) {
+    histogram[data[i]]++;
+  }
+
+  const totalPixels = canvas.width * canvas.height;
+
+  // Find optimal threshold using Otsu's method
+  let sum = 0;
+  for (let i = 0; i < 256; i++) {
+    sum += i * histogram[i];
+  }
+
+  let sumB = 0;
+  let wB = 0;
+  let maxVariance = 0;
+  let threshold = 0;
+
+  for (let t = 0; t < 256; t++) {
+    wB += histogram[t];
+    if (wB === 0) continue;
+
+    const wF = totalPixels - wB;
+    if (wF === 0) break;
+
+    sumB += t * histogram[t];
+
+    const mB = sumB / wB;
+    const mF = (sum - sumB) / wF;
+
+    const variance = wB * wF * (mB - mF) * (mB - mF);
+
+    if (variance > maxVariance) {
+      maxVariance = variance;
+      threshold = t;
+    }
+  }
+
+  // Apply threshold
   for (let i = 0; i < data.length; i += 4) {
     const value = data[i] < threshold ? 0 : 255;
     data[i] = value;
@@ -120,58 +148,36 @@ export function applyThreshold(canvas, threshold = 128) {
 }
 
 /**
- * Apply adaptive threshold for better handling of varying lighting
- * @param {HTMLCanvasElement} canvas - Source canvas (should be grayscale)
- * @param {number} blockSize - Size of the local neighborhood (odd number)
- * @param {number} c - Constant subtracted from mean
- * @returns {HTMLCanvasElement}
+ * Clean up noise - remove small isolated pixels
  */
-export function adaptiveThreshold(canvas, blockSize = 15, c = 10) {
+export function removeNoise(canvas, minSize = 3) {
   const ctx = canvas.getContext('2d');
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
   const width = canvas.width;
   const height = canvas.height;
 
-  // Create grayscale array
-  const gray = new Uint8Array(width * height);
-  for (let i = 0; i < gray.length; i++) {
-    gray[i] = data[i * 4];
-  }
+  // Simple noise removal: if a black pixel has fewer than minSize black neighbors, make it white
+  const copy = new Uint8ClampedArray(data);
 
-  // Calculate integral image for fast mean calculation
-  const integral = new Float64Array((width + 1) * (height + 1));
-  for (let y = 0; y < height; y++) {
-    let rowSum = 0;
-    for (let x = 0; x < width; x++) {
-      rowSum += gray[y * width + x];
-      integral[(y + 1) * (width + 1) + (x + 1)] =
-        integral[y * (width + 1) + (x + 1)] + rowSum;
-    }
-  }
-
-  const halfBlock = Math.floor(blockSize / 2);
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const x1 = Math.max(0, x - halfBlock);
-      const y1 = Math.max(0, y - halfBlock);
-      const x2 = Math.min(width - 1, x + halfBlock);
-      const y2 = Math.min(height - 1, y + halfBlock);
-
-      const count = (x2 - x1 + 1) * (y2 - y1 + 1);
-      const sum = integral[(y2 + 1) * (width + 1) + (x2 + 1)]
-                - integral[(y2 + 1) * (width + 1) + x1]
-                - integral[y1 * (width + 1) + (x2 + 1)]
-                + integral[y1 * (width + 1) + x1];
-
-      const mean = sum / count;
-      const idx = (y * width + x) * 4;
-      const value = gray[y * width + x] > mean - c ? 255 : 0;
-
-      data[idx] = value;
-      data[idx + 1] = value;
-      data[idx + 2] = value;
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const i = (y * width + x) * 4;
+      if (copy[i] === 0) { // Black pixel
+        let blackNeighbors = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            if (dx === 0 && dy === 0) continue;
+            const ni = ((y + dy) * width + (x + dx)) * 4;
+            if (copy[ni] === 0) blackNeighbors++;
+          }
+        }
+        if (blackNeighbors < minSize) {
+          data[i] = 255;
+          data[i + 1] = 255;
+          data[i + 2] = 255;
+        }
+      }
     }
   }
 
@@ -179,63 +185,29 @@ export function adaptiveThreshold(canvas, blockSize = 15, c = 10) {
   return canvas;
 }
 
-/**
- * Clamp value to 0-255 range
- * @param {number} value
- * @returns {number}
- */
 function clamp(value) {
   return Math.max(0, Math.min(255, Math.round(value)));
 }
 
 /**
  * Full preprocessing pipeline
- * @param {File|Blob|string} source - Image source
- * @param {Object} options - Preprocessing options
- * @returns {Promise<HTMLCanvasElement>} - Preprocessed canvas
  */
-export async function preprocessImage(source, options = {}) {
-  const {
-    useAdaptiveThreshold = true,
-    contrastFactor = 1.5,
-    threshold = 128,
-    adaptiveBlockSize = 15,
-    adaptiveC = 10
-  } = options;
-
+export async function preprocessImage(source) {
   const img = await loadImage(source);
   const { canvas } = imageToCanvas(img);
 
-  // Convert to grayscale
   toGrayscale(canvas);
-
-  // Increase contrast
-  increaseContrast(canvas, contrastFactor);
-
-  // Apply threshold
-  if (useAdaptiveThreshold) {
-    adaptiveThreshold(canvas, adaptiveBlockSize, adaptiveC);
-  } else {
-    applyThreshold(canvas, threshold);
-  }
+  increaseContrast(canvas, 2.0);
+  otsuThreshold(canvas);
+  removeNoise(canvas, 2);
 
   return canvas;
 }
 
-/**
- * Get canvas as data URL
- * @param {HTMLCanvasElement} canvas
- * @returns {string}
- */
 export function canvasToDataURL(canvas) {
   return canvas.toDataURL('image/png');
 }
 
-/**
- * Get canvas as Blob
- * @param {HTMLCanvasElement} canvas
- * @returns {Promise<Blob>}
- */
 export function canvasToBlob(canvas) {
   return new Promise((resolve) => {
     canvas.toBlob(resolve, 'image/png');
