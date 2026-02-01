@@ -3,6 +3,7 @@
  * Live camera preview with capture functionality
  */
 
+import { useEffect } from 'react';
 import { useCamera } from '../hooks/useCamera';
 import './CameraCapture.css';
 
@@ -17,6 +18,11 @@ export function CameraCapture({ onCapture, onCancel }) {
     switchCamera,
     capture
   } = useCamera();
+
+  // Auto-start camera when component mounts
+  useEffect(() => {
+    startCamera();
+  }, [startCamera]);
 
   const handleCapture = () => {
     const canvas = capture();
@@ -48,10 +54,7 @@ export function CameraCapture({ onCapture, onCancel }) {
     return (
       <div className="camera-capture">
         <div className="camera-start">
-          <p>Position the sudoku puzzle within the frame</p>
-          <button onClick={startCamera} className="btn btn-primary">
-            Start Camera
-          </button>
+          <p>Starting camera...</p>
           <button onClick={onCancel} className="btn btn-secondary">
             Cancel
           </button>
