@@ -67,6 +67,16 @@ function reducer(state, action) {
     case 'RESET':
       return initialState;
 
+    case 'LOAD_HISTORY_ENTRY':
+      return {
+        ...state,
+        status: 'complete',
+        originalGrid: action.payload.originalGrid,
+        solvedGrid: action.payload.solvedGrid,
+        error: null,
+        progress: { stage: null, percent: 0 }
+      };
+
     case 'CANCEL_CAPTURE':
       return {
         ...state,
@@ -115,6 +125,10 @@ export function SudokuProvider({ children }) {
     dispatch({ type: 'RESET' });
   }, []);
 
+  const loadHistoryEntry = useCallback((entry) => {
+    dispatch({ type: 'LOAD_HISTORY_ENTRY', payload: entry });
+  }, []);
+
   const value = {
     ...state,
     startCapture,
@@ -124,7 +138,8 @@ export function SudokuProvider({ children }) {
     setOriginalGrid,
     setSolvedGrid,
     setError,
-    reset
+    reset,
+    loadHistoryEntry
   };
 
   return (

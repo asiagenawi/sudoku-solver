@@ -97,8 +97,9 @@ export function ImageUpload({ onUpload, onError }) {
           <polyline points="17 8 12 3 7 8" />
           <line x1="12" y1="3" x2="12" y2="15" />
         </svg>
-        <p className="upload-text">Click or drag to upload an image</p>
-        <p className="upload-hint">JPEG, PNG, WebP, or GIF (max 10MB)</p>
+        <p className="upload-text">Drop a puzzle image here, or</p>
+        <span className="upload-cta">Upload Puzzle</span>
+        <p className="upload-hint">Instant brain relief — just add image</p>
       </div>
     </div>
   );

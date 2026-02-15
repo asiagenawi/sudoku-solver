@@ -1,0 +1,109 @@
+.how-it-works {
+  width: 100%;
+  max-width: 540px;
+  margin-top: 3rem;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 14px;
+  padding: 1.75rem 2rem 2rem;
+}
+
+.how-it-works-title {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4a3040;
+  margin: 0 0 1.5rem;
+}
+
+.how-it-works-steps {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.how-it-works-step-wrapper {
+  display: flex;
+  align-items: flex-start;
+}
+
+.how-it-works-arrow {
+  display: flex;
+  align-items: center;
+  padding-top: 18px;
+  margin: 0 0.75rem;
+  color: #c0a0aa;
+}
+
+.how-it-works-step {
+  flex: 0 0 auto;
+  text-align: center;
+  width: 120px;
+}
+
+.how-it-works-icon {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #E3B5BC;
+  color: #4a3040;
+}
+
+.how-it-works-number {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #C4758B;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.how-it-works-step h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #4a3040;
+}
+
+.how-it-works-step p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #6b5060;
+  line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+  .how-it-works {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .how-it-works-arrow {
+    margin: 0 0.35rem;
+  }
+
+  .how-it-works-step {
+    width: 90px;
+  }
+
+  .how-it-works-icon {
+    width: 46px;
+    height: 46px;
+  }
+
+  .how-it-works-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+}

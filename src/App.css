@@ -5,20 +5,104 @@
 }
 
 .app-header {
+  position: relative;
   text-align: center;
-  padding: 1.5rem 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1.5rem 1rem 1.25rem;
+  background:
+    linear-gradient(135deg, #b8607a 0%, #C4758B 40%, #d48a9e 100%);
   color: white;
+  overflow: hidden;
+}
+
+/* subtle grid texture on header */
+.app-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 19px,
+      rgba(255, 255, 255, 0.04) 19px,
+      rgba(255, 255, 255, 0.04) 20px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 19px,
+      rgba(255, 255, 255, 0.04) 19px,
+      rgba(255, 255, 255, 0.04) 20px
+    );
+  pointer-events: none;
+}
+
+.app-header > * {
+  position: relative;
+}
+
+.github-link {
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 0.75rem;
+}
+
+.github-link:hover {
+  color: white;
+}
+
+.header-title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.header-grid-icon {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.header-grid-cell {
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.25);
+  animation: headerCellPulse 3s ease-in-out infinite;
+}
+
+.header-grid-cell:nth-child(1) { animation-delay: 0s; }
+.header-grid-cell:nth-child(2) { animation-delay: 0.15s; }
+.header-grid-cell:nth-child(3) { animation-delay: 0.3s; }
+.header-grid-cell:nth-child(4) { animation-delay: 0.45s; }
+.header-grid-cell:nth-child(5) { animation-delay: 0.6s; background: rgba(255,255,255,0.5); }
+.header-grid-cell:nth-child(6) { animation-delay: 0.75s; }
+.header-grid-cell:nth-child(7) { animation-delay: 0.9s; }
+.header-grid-cell:nth-child(8) { animation-delay: 1.05s; }
+.header-grid-cell:nth-child(9) { animation-delay: 1.2s; }
+
+@keyframes headerCellPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 
 .app-header h1 {
   margin: 0;
   font-size: clamp(1.5rem, 5vw, 2rem);
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .app-subtitle {
-  margin: 0.5rem 0 0;
+  margin: 0.4rem 0 0;
   font-size: 0.9rem;
   opacity: 0.9;
 }
@@ -28,17 +112,48 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1.5rem 1rem;
-  background: #f9fafb;
+  padding: 2rem 1rem 3rem;
+  background-color: #E8D3DC;
+  background-image:
+    /* thick lines every 3 cells (3 × 28px = 84px) */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 83px,
+      rgba(196, 117, 139, 0.12) 83px,
+      rgba(196, 117, 139, 0.12) 85px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 83px,
+      rgba(196, 117, 139, 0.12) 83px,
+      rgba(196, 117, 139, 0.12) 85px
+    ),
+    /* thin lines every cell (28px) */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 27px,
+      rgba(196, 117, 139, 0.06) 27px,
+      rgba(196, 117, 139, 0.06) 28px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 27px,
+      rgba(196, 117, 139, 0.06) 27px,
+      rgba(196, 117, 139, 0.06) 28px
+    );
 }
 
 .input-options {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
   width: 100%;
-  max-width: 400px;
+  max-width: 900px;
 }
 
 .divider {
@@ -55,6 +170,12 @@
   flex: 1;
   height: 1px;
   background: #ddd;
+}
+
+.detected-grid-label {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
 }
 
 .result-actions {
@@ -84,12 +205,12 @@
 }
 
 .btn-primary {
-  background: #2563eb;
+  background: #C4758B;
   color: white;
 }
 
 .btn-primary:hover {
-  background: #1d4ed8;
+  background: #B36479;
 }
 
 .btn-secondary {
@@ -114,7 +235,7 @@
 /* Mobile optimizations */
 @media (max-width: 480px) {
   .app-header {
-    padding: 1rem;
+    padding: 0.75rem 1rem;
   }
 
   .app-main {
