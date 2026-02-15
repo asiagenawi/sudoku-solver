@@ -1,18 +1,18 @@
 .how-it-works {
   width: 100%;
-  max-width: 540px;
-  margin-top: 3rem;
+  max-width: 440px;
+  margin-top: 2rem;
   background: rgba(255, 255, 255, 0.55);
-  border-radius: 14px;
-  padding: 1.75rem 2rem 2rem;
+  border-radius: 10px;
+  padding: 1.25rem 1.25rem 1.5rem;
 }
 
 .how-it-works-title {
   text-align: center;
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #4a3040;
-  margin: 0 0 1.5rem;
+  margin: 0 0 1rem;
 }
 
 .how-it-works-steps {
@@ -29,22 +29,22 @@
 .how-it-works-arrow {
   display: flex;
   align-items: center;
-  padding-top: 18px;
-  margin: 0 0.75rem;
+  padding-top: 14px;
+  margin: 0 0.5rem;
   color: #c0a0aa;
 }
 
 .how-it-works-step {
   flex: 0 0 auto;
   text-align: center;
-  width: 120px;
+  width: 95px;
 }
 
 .how-it-works-icon {
   position: relative;
-  width: 52px;
-  height: 52px;
-  margin: 0 auto 0.75rem;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -55,38 +55,38 @@
 
 .how-it-works-number {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 20px;
-  height: 20px;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   background: #C4758B;
   color: white;
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   font-weight: 700;
   line-height: 1;
 }
 
 .how-it-works-step h3 {
-  margin: 0 0 0.25rem;
-  font-size: 0.9rem;
+  margin: 0 0 0.15rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: #4a3040;
 }
 
 .how-it-works-step p {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   color: #6b5060;
   line-height: 1.4;
 }
 
 @media (max-width: 480px) {
   .how-it-works {
-    padding: 1.5rem 1.25rem;
+    padding: 1rem 1rem;
   }
 
   .how-it-works-arrow {
@@ -94,16 +94,16 @@
   }
 
   .how-it-works-step {
-    width: 90px;
+    width: 80px;
   }
 
   .how-it-works-icon {
-    width: 46px;
-    height: 46px;
+    width: 36px;
+    height: 36px;
   }
 
   .how-it-works-icon svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
   }
 }
